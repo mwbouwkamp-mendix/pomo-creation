@@ -1,0 +1,59 @@
+{
+    "AppId":"99abffb7-dd91-4d75-848f-d992d9bedced",
+    "BranchName":"branches/Remco",
+    "Module": "TestModule",
+    "Entities": [
+        {
+            "Name": "Person",
+            "NonPersistent": false,
+            "Attributes": [
+                {
+                    "Name":"FirstName",
+                    "Type":"STRING"
+                },
+                {
+                    "Name":"LastName",
+                    "Type":"STRING"
+                },
+                {
+                    "Name":"NickName",
+                    "Type":"STRING",
+                    "Required":"true",
+                    "MaxLength":"16"
+                },
+                {
+                    "Name":"Email",
+                    "Type":"STRING",
+                    "Required":"true",
+                    "Unique":"true"
+                },
+                {
+                    "Name":"Age",
+                    "Type":"INTEGER",
+                    "Required":"",
+                    "Unique":"",
+                    "MaxLength":"",
+                    "MinValue":"18",
+                    "Enumeration":""
+                },
+                {
+                    "Name":"Membership",
+                    "Type":"ENUMERATION",
+                    "Required":"",
+                    "Unique":"",
+                    "MaxLength":"",
+                    "MinValue":"",
+                    "Enumeration":"Memberships"
+                }
+            ]
+        }
+    ],
+    "Enumerations": [
+        {
+            "Name": "Memberships",
+            "Values": [
+                "Silver", "Gold", "Platinum"
+            ]
+        }
+    ]
+}

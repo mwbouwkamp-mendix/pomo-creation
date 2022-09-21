@@ -1,0 +1,37 @@
+{
+    "AppId":"99abffb7-dd91-4d75-848f-d992d9bedced",
+    "BranchName":"branches/Remco",
+    "Module": "MFIModule_MWB",
+    "Entities": [
+        {
+            "Name": "Marcoooooo"
+        },
+        {
+            "Name": "Delion"
+        },
+        {
+            "Name": "Remcooooo"
+        },
+        {
+            "Name": "Stephan"
+        },
+        {
+            "Name": "Wesley"
+        },
+        {
+            "Name": "Stella"
+        },
+        {
+            "Name": "Dennis"
+        },
+        {
+            "Name": "Alex_1"
+        },
+        {
+            "Name": "Alex_2"
+        },
+        {
+            "Name": "Alex_3"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "pomo-creation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mendixmodelsdk": "^4.67.0",
+    "mendixplatformsdk": "^5.1.1"
+  }
+}
