@@ -107,6 +107,8 @@ const createAttribute = (
       domainmodels.BooleanAttributeType.createInAttributeUnderType(
         NewAttribute
       );
+      const defaultBooleanValue = domainmodels.StoredValue.createIn(NewAttribute);
+      defaultBooleanValue.defaultValue = "true";
       break;
     case PrimitiveType.DATE || PrimitiveType.DATE_TIME:
       domainmodels.DateTimeAttributeType.createInAttributeUnderType(
