@@ -1,7 +1,7 @@
 {
     "AppId":"99abffb7-dd91-4d75-848f-d992d9bedced",
     "BranchName":"branches/Remco",
-    "Module": "MFIModule_MWB2",
+    "Module": "MFIModule_MWB3",
     "Entities": [
         {
             "Name": "Marco"

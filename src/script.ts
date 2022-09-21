@@ -53,3 +53,5 @@ async function main() {
 
   await workingCopy.commitToRepository(input.BranchName);
 }
+
+main().catch(console.error);

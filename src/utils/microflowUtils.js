@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConnectionType = exports.connectMicroflowActions = exports.createCreateAction = exports.createEndEvent = exports.createStartEvent = exports.createMicroflow = void 0;
+exports.ConnectionType = exports.connectMicroflowActions = exports.createAndAttachDeleteAction = exports.createAndAttachCreateAction = exports.createEndEvent = exports.createAndAttachEndEvent = exports.createStartEvent = exports.createMicroflow = void 0;
 const mendixmodelsdk_1 = require("mendixmodelsdk");
 const createMicroflow = (location, name) => {
     const microflow = mendixmodelsdk_1.microflows.Microflow.createIn(location);
@@ -14,6 +14,12 @@ const createStartEvent = (microflow) => {
     return start;
 };
 exports.createStartEvent = createStartEvent;
+const createAndAttachEndEvent = (microflow, attachAfterObject) => {
+    const endEvent = (0, exports.createEndEvent)(microflow, attachAfterObject.relativeMiddlePoint.x + 140);
+    connectMicroflowActions(microflow, attachAfterObject, endEvent, ConnectionType.LEFT_RIGHT);
+    return endEvent;
+};
+exports.createAndAttachEndEvent = createAndAttachEndEvent;
 const createEndEvent = (microflow, x) => {
     const end = mendixmodelsdk_1.microflows.EndEvent.createIn(microflow.objectCollection);
     end.relativeMiddlePoint = { x: x, y: 100 };
@@ -26,15 +32,32 @@ const createMicroflowAction = (microflow, x, widthFactor) => {
     actionActivity.size.width = actionActivity.size.width * widthFactor;
     return actionActivity;
 };
-const createCreateAction = (microflow, entity) => {
-    const actionActivity = createMicroflowAction(microflow, 140, 1);
+const createAndAttachCreateAction = (microflow, entity, attachAfterObject) => {
+    const actionActivity = createCreateAction(microflow, entity, attachAfterObject.relativeMiddlePoint.x + 140);
+    connectMicroflowActions(microflow, attachAfterObject, actionActivity, ConnectionType.LEFT_RIGHT);
+    return actionActivity;
+};
+exports.createAndAttachCreateAction = createAndAttachCreateAction;
+const createCreateAction = (microflow, entity, x) => {
+    const actionActivity = createMicroflowAction(microflow, x, 1);
     const createObject = mendixmodelsdk_1.microflows.CreateObjectAction.createIn(actionActivity);
     createObject.entity = entity;
     createObject.outputVariableName = `New${entity.name}`;
     createObject.structureTypeName = entity.name;
     return actionActivity;
 };
-exports.createCreateAction = createCreateAction;
+const createAndAttachDeleteAction = (microflow, entity, attachAfterObject) => {
+    const actionActivity = createDeleteAction(microflow, entity, attachAfterObject.relativeMiddlePoint.x + 140);
+    connectMicroflowActions(microflow, attachAfterObject, actionActivity, ConnectionType.LEFT_RIGHT);
+    return actionActivity;
+};
+exports.createAndAttachDeleteAction = createAndAttachDeleteAction;
+const createDeleteAction = (microflow, entity, x) => {
+    const actionActivity = createMicroflowAction(microflow, x, 1);
+    const DeleteObject = mendixmodelsdk_1.microflows.DeleteAction.createIn(actionActivity);
+    DeleteObject.refreshInClient = true;
+    return actionActivity;
+};
 function connectMicroflowActions(microflow, start, end, connectionType) {
     const flow = mendixmodelsdk_1.microflows.SequenceFlow.createIn(microflow);
     flow.origin = start;

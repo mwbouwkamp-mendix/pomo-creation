@@ -7,7 +7,7 @@ import {
   projects,
   security,
 } from "mendixmodelsdk";
-import { ConnectionType, connectMicroflowActions, createCreateAction, createDeleteAction, createEndEvent, createMicroflow, createStartEvent } from "./microflowUtils";
+import { ConnectionType, connectMicroflowActions, createAndAttachCreateAction, createAndAttachDeleteAction, createAndAttachEndEvent, createMicroflow, createStartEvent } from "./microflowUtils";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "../input.json";
 import { PrimitiveType } from "../types/AttributeType";
@@ -156,28 +156,13 @@ const createAttribute = (
   return NewAttribute;
 };
 export const createDefaultDeleteMicroflow = ( //Needs input parameter
-  entity: domainmodels.Entity,  //Entity to create
+  entity: domainmodels.Entity,  //Entity to delete
   folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
-  const microflow = createMicroflow(folder, `${entity.name}_Create`);
+  const microflow = createMicroflow(folder, `${entity.name}_Delete`);
   const startEvent = createStartEvent(microflow);
-  const createActivity = createDeleteAction(microflow, entity);
-  const endEvent = createEndEvent(microflow, 280);
-  datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
-    microflow
-  ).entity = entity;
-  connectMicroflowActions(
-    microflow,
-    startEvent,
-    createActivity,
-    ConnectionType.LEFT_RIGHT
-  );
-  connectMicroflowActions(
-    microflow,
-    createActivity,
-    endEvent,
-    ConnectionType.LEFT_RIGHT
-  );
+  const deleteActivity = createAndAttachDeleteAction(microflow, entity, startEvent);
+  const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
 };
 
 export const createDefaultCreateMicroflow = (
@@ -186,24 +171,12 @@ export const createDefaultCreateMicroflow = (
 ) => {
   const microflow = createMicroflow(folder, `${entity.name}_Create`);
   const startEvent = createStartEvent(microflow);
-  const createActivity = createCreateAction(microflow, entity);
-  const endEvent = createEndEvent(microflow, 280);
+  const createActivity = createAndAttachCreateAction(microflow, entity, startEvent);
+  const endEvent = createAndAttachEndEvent(microflow, createActivity);
   endEvent.returnValue = "$New" + entity.name;
   datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
     microflow
   ).entity = entity;
-  connectMicroflowActions(
-    microflow,
-    startEvent,
-    createActivity,
-    ConnectionType.LEFT_RIGHT
-  );
-  connectMicroflowActions(
-    microflow,
-    createActivity,
-    endEvent,
-    ConnectionType.LEFT_RIGHT
-  );
 };
 
 

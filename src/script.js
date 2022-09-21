@@ -27,23 +27,9 @@ async function main() {
         (0, utils_1.getOrCreateAttribute)(newEnt, "Active", AttributeType_1.PrimitiveType.BOOLEAN);
         const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
         (0, utils_1.createDefaultCreateMicroflow)(newEnt, entObjFolder);
+        (0, utils_1.createDefaultDeleteMicroflow)(newEnt, entObjFolder);
     }
     await model.flushChanges();
     await workingCopy.commitToRepository(input_json_1.default.BranchName);
 }
 main().catch(console.error);
-function createMicroflow(entObjFolder, arg1) {
-    throw new Error("Function not implemented.");
-}
-function createStartEvent(microflow) {
-    throw new Error("Function not implemented.");
-}
-function createEndEvent(microflow, arg1) {
-    throw new Error("Function not implemented.");
-}
-function createCreateAction(microflow, newEnt) {
-    throw new Error("Function not implemented.");
-}
-function connectMicroflowActions(microflow, startEvent, createActivity, LEFT_RIGHT) {
-    throw new Error("Function not implemented.");
-}
