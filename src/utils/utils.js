@@ -3,8 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConnectionType = exports.connectMicroflowActions = exports.createCreateAction = exports.createEndEvent = exports.createStartEvent = exports.createMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
+exports.createDefaultCreateMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
 const mendixmodelsdk_1 = require("mendixmodelsdk");
+const microflowUtils_1 = require("./microflowUtils");
 const input_json_1 = __importDefault(require("../input.json"));
 const AttributeType_1 = require("../types/AttributeType");
 const getOrCreateDomainModel = async (model) => {
@@ -41,36 +42,54 @@ const createFolder = (location, name) => {
     folder.name = name;
     return folder;
 };
-const getOrCreateEntity = (domainModel, entityName, x, y) => {
+const getOrCreateEntity = (domainModel, entityName, x, y, documentation) => {
     const existingEntity = domainModel.entities.filter((dm) => dm.name === entityName)[0];
     if (existingEntity)
         return existingEntity;
-    return createEntity(domainModel, entityName, x, y);
+    return createEntity(domainModel, entityName, x, y, documentation);
 };
 exports.getOrCreateEntity = getOrCreateEntity;
-const createEntity = (domainModel, entityName, x, y) => {
+const createEntity = (domainModel, //Required: On which Module do you need the entity.
+entityName, //Required: Name of the Entity
+x, y, documentation) => {
     const newEntity = mendixmodelsdk_1.domainmodels.Entity.createIn(domainModel);
     newEntity.name = entityName;
+    newEntity.documentation = documentation || `This is default documentation for entity ${newEntity.name}.`;
     newEntity.location = { x: x, y: y };
     return newEntity;
 };
-const getOrCreateAttribute = (Entity, attributeName, attributeType, length) => {
+const getOrCreateAttribute = (Entity, //Required: On which Entity do you need the attribute.
+attributeName, //Required: Name of the attribute
+attributeType, //Optional: if empty set to primitiveType.STRING.
+length, //is only used for PrimitiveType.STRING, if empty set to 200.
+defaultValue, //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+documentation //Optional: will be added to the Attribute documentation.
+) => {
     const ExistingAttribute = Entity.attributes.filter((dm) => dm.name === attributeName)[0];
     if (ExistingAttribute)
         return ExistingAttribute;
-    return createAttribute(Entity, attributeName, attributeType, length);
+    return createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation);
 };
 exports.getOrCreateAttribute = getOrCreateAttribute;
-const createAttribute = (Entity, attributeName, attributeType, length) => {
+const createAttribute = (Entity, //Required: On which Entity do you need the attribute.
+attributeName, //Required: Name of the attribute
+attributeType, //Optional: if empty set to primitiveType.STRING.
+length, //is only used for PrimitiveType.STRING, if empty set to 200.
+defaultValue, //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+documentation //Optional: will be added to the Attribute documentation.
+) => {
     const NewAttribute = mendixmodelsdk_1.domainmodels.Attribute.createIn(Entity);
     const type = attributeType || AttributeType_1.PrimitiveType.STRING;
     NewAttribute.name = attributeName;
+    NewAttribute.documentation = documentation || `This is default documentation for ${attributeName} on ${Entity.name}`;
     switch (type) {
         case AttributeType_1.PrimitiveType.BINARY:
             mendixmodelsdk_1.domainmodels.BinaryAttributeType.createInAttributeUnderType(NewAttribute);
             break;
         case AttributeType_1.PrimitiveType.BOOLEAN:
             mendixmodelsdk_1.domainmodels.BooleanAttributeType.createInAttributeUnderType(NewAttribute);
+            const defaultBooleanValue = mendixmodelsdk_1.domainmodels.StoredValue.createIn(NewAttribute);
+            defaultBooleanValue.defaultValue = defaultValue || "false";
             break;
         case AttributeType_1.PrimitiveType.DATE || AttributeType_1.PrimitiveType.DATE_TIME:
             mendixmodelsdk_1.domainmodels.DateTimeAttributeType.createInAttributeUnderType(NewAttribute);
@@ -96,60 +115,14 @@ const createAttribute = (Entity, attributeName, attributeType, length) => {
     }
     return NewAttribute;
 };
-const createMicroflow = (location, name) => {
-    const microflow = mendixmodelsdk_1.microflows.Microflow.createIn(location);
-    microflow.name = name;
-    return microflow;
+const createDefaultCreateMicroflow = (entity, folder) => {
+    const microflow = (0, microflowUtils_1.createMicroflow)(folder, `${entity.name}_Create`);
+    const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
+    const createActivity = (0, microflowUtils_1.createCreateAction)(microflow, entity);
+    const endEvent = (0, microflowUtils_1.createEndEvent)(microflow, 280);
+    endEvent.returnValue = "$New" + entity.name;
+    mendixmodelsdk_1.datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(microflow).entity = entity;
+    (0, microflowUtils_1.connectMicroflowActions)(microflow, startEvent, createActivity, microflowUtils_1.ConnectionType.LEFT_RIGHT);
+    (0, microflowUtils_1.connectMicroflowActions)(microflow, createActivity, endEvent, microflowUtils_1.ConnectionType.LEFT_RIGHT);
 };
-exports.createMicroflow = createMicroflow;
-const createStartEvent = (microflow) => {
-    const start = mendixmodelsdk_1.microflows.StartEvent.createIn(microflow.objectCollection);
-    start.relativeMiddlePoint = { x: 0, y: 100 };
-    return start;
-};
-exports.createStartEvent = createStartEvent;
-const createEndEvent = (microflow, x) => {
-    const end = mendixmodelsdk_1.microflows.EndEvent.createIn(microflow.objectCollection);
-    end.relativeMiddlePoint = { x: x, y: 100 };
-    return end;
-};
-exports.createEndEvent = createEndEvent;
-const createMicroflowAction = (microflow, x, widthFactor) => {
-    const actionActivity = mendixmodelsdk_1.microflows.ActionActivity.createIn(microflow.objectCollection);
-    actionActivity.relativeMiddlePoint = { x: x, y: 100 };
-    actionActivity.size.width = actionActivity.size.width * widthFactor;
-    return actionActivity;
-};
-const createCreateAction = (microflow, entity) => {
-    const actionActivity = createMicroflowAction(microflow, 140, 1);
-    const createObject = mendixmodelsdk_1.microflows.CreateObjectAction.createIn(actionActivity);
-    createObject.entity = entity;
-    createObject.outputVariableName = `New${entity.name}`;
-    createObject.structureTypeName = entity.name;
-    return actionActivity;
-};
-exports.createCreateAction = createCreateAction;
-function connectMicroflowActions(microflow, start, end, connectionType) {
-    const flow = mendixmodelsdk_1.microflows.SequenceFlow.createIn(microflow);
-    flow.origin = start;
-    flow.destination = end;
-    switch (connectionType) {
-        case ConnectionType.LEFT_RIGHT:
-            flow.originConnectionIndex = 1;
-            flow.destinationConnectionIndex = 3;
-            break;
-        case ConnectionType.TOP_BOTTOM:
-            flow.originConnectionIndex = 2;
-            flow.destinationConnectionIndex = 0;
-            break;
-        default:
-            throw Error(`Unsupported ConnectionType: ${connectionType}`);
-    }
-    return flow;
-}
-exports.connectMicroflowActions = connectMicroflowActions;
-var ConnectionType;
-(function (ConnectionType) {
-    ConnectionType[ConnectionType["TOP_BOTTOM"] = 0] = "TOP_BOTTOM";
-    ConnectionType[ConnectionType["LEFT_RIGHT"] = 1] = "LEFT_RIGHT";
-})(ConnectionType = exports.ConnectionType || (exports.ConnectionType = {}));
+exports.createDefaultCreateMicroflow = createDefaultCreateMicroflow;

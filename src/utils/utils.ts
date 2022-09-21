@@ -1,4 +1,5 @@
 import {
+  datatypes,
   domainmodels,
   EnumProperty,
   IModel,
@@ -6,6 +7,7 @@ import {
   projects,
   security,
 } from "mendixmodelsdk";
+import { ConnectionType, connectMicroflowActions, createCreateAction, createDeleteAction, createEndEvent, createMicroflow, createStartEvent } from "./microflowUtils";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "../input.json";
 import { PrimitiveType } from "../types/AttributeType";
@@ -57,48 +59,58 @@ export const getOrCreateEntity = (
   domainModel: domainmodels.DomainModel,
   entityName: string,
   x: number,
-  y: number
+  y: number,
+  documentation?: string
 ) => {
   const existingEntity = domainModel.entities.filter(
     (dm) => dm.name === entityName
   )[0];
   if (existingEntity) return existingEntity;
-  return createEntity(domainModel, entityName, x, y);
+  return createEntity(domainModel, entityName, x, y, documentation);
 };
 
 const createEntity = (
-  domainModel: domainmodels.DomainModel,
-  entityName: string,
+  domainModel: domainmodels.DomainModel,  //Required: On which Module do you need the entity.
+  entityName: string,                     //Required: Name of the Entity
   x: number,
-  y: number
+  y: number,
+  documentation?: string
 ) => {
   const newEntity = domainmodels.Entity.createIn(domainModel);
   newEntity.name = entityName;
+  newEntity.documentation = documentation || `This is default documentation for entity ${newEntity.name}.`
   newEntity.location = { x: x, y: y };
   return newEntity;
 };
+
 export const getOrCreateAttribute = (
-  Entity: domainmodels.Entity,
-  attributeName: string,
-  attributeType?: PrimitiveType,
-  length?: number
+  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
+  attributeName: string,          //Required: Name of the attribute
+  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
+  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
+  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+  documentation?: string          //Optional: will be added to the Attribute documentation.
 ) => {
   const ExistingAttribute = Entity.attributes.filter(
     (dm) => dm.name === attributeName
   )[0];
   if (ExistingAttribute) return ExistingAttribute;
-  return createAttribute(Entity, attributeName, attributeType, length);
+  return createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation);
 };
 
+
 const createAttribute = (
-  Entity: domainmodels.Entity,
-  attributeName: string,
-  attributeType?: PrimitiveType,
-  length?: number
+  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
+  attributeName: string,          //Required: Name of the attribute
+  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
+  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
+  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+  documentation?: string          //Optional: will be added to the Attribute documentation.
 ) => {
   const NewAttribute = domainmodels.Attribute.createIn(Entity);
   const type = attributeType || PrimitiveType.STRING;
   NewAttribute.name = attributeName;
+  NewAttribute.documentation = documentation || `This is default documentation for ${attributeName} on ${Entity.name}`;
   switch (type) {
     case PrimitiveType.BINARY:
       domainmodels.BinaryAttributeType.createInAttributeUnderType(NewAttribute);
@@ -108,7 +120,7 @@ const createAttribute = (
         NewAttribute
       );
       const defaultBooleanValue = domainmodels.StoredValue.createIn(NewAttribute);
-      defaultBooleanValue.defaultValue = "true";
+      defaultBooleanValue.defaultValue = defaultValue || "false";
       break;
     case PrimitiveType.DATE || PrimitiveType.DATE_TIME:
       domainmodels.DateTimeAttributeType.createInAttributeUnderType(
@@ -143,83 +155,55 @@ const createAttribute = (
   }
   return NewAttribute;
 };
-
-export const createMicroflow = (
-  location: projects.IFolderBase,
-  name: string
+export const createDefaultDeleteMicroflow = ( //Needs input parameter
+  entity: domainmodels.Entity,  //Entity to create
+  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
-  const microflow = microflows.Microflow.createIn(location);
-  microflow.name = name;
-  return microflow;
-};
-
-export const createStartEvent = (
-  microflow: microflows.Microflow
-): microflows.StartEvent => {
-  const start = microflows.StartEvent.createIn(microflow.objectCollection);
-  start.relativeMiddlePoint = { x: 0, y: 100 };
-  return start;
-};
-
-export const createEndEvent = (
-  microflow: microflows.Microflow,
-  x: number
-): microflows.EndEvent => {
-  const end = microflows.EndEvent.createIn(microflow.objectCollection);
-  end.relativeMiddlePoint = { x: x, y: 100 };
-  return end;
-};
-
-const createMicroflowAction = (
-  microflow: microflows.Microflow,
-  x: number,
-  widthFactor: number
-): microflows.ActionActivity => {
-  const actionActivity = microflows.ActionActivity.createIn(
-    microflow.objectCollection
+  const microflow = createMicroflow(folder, `${entity.name}_Create`);
+  const startEvent = createStartEvent(microflow);
+  const createActivity = createDeleteAction(microflow, entity);
+  const endEvent = createEndEvent(microflow, 280);
+  datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
+    microflow
+  ).entity = entity;
+  connectMicroflowActions(
+    microflow,
+    startEvent,
+    createActivity,
+    ConnectionType.LEFT_RIGHT
   );
-  actionActivity.relativeMiddlePoint = { x: x, y: 100 };
-  actionActivity.size.width = actionActivity.size.width * widthFactor;
-  return actionActivity;
+  connectMicroflowActions(
+    microflow,
+    createActivity,
+    endEvent,
+    ConnectionType.LEFT_RIGHT
+  );
 };
 
-export const createCreateAction = (
-  microflow: microflows.Microflow,
-  entity: domainmodels.Entity
-): microflows.ActionActivity => {
-  const actionActivity = createMicroflowAction(microflow, 140, 1);
-  const createObject = microflows.CreateObjectAction.createIn(actionActivity);
-  createObject.entity = entity;
-  createObject.outputVariableName = `New${entity.name}`;
-  createObject.structureTypeName = entity.name;
-  return actionActivity;
+export const createDefaultCreateMicroflow = (
+  entity: domainmodels.Entity,  //Entity to create
+  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+) => {
+  const microflow = createMicroflow(folder, `${entity.name}_Create`);
+  const startEvent = createStartEvent(microflow);
+  const createActivity = createCreateAction(microflow, entity);
+  const endEvent = createEndEvent(microflow, 280);
+  endEvent.returnValue = "$New" + entity.name;
+  datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
+    microflow
+  ).entity = entity;
+  connectMicroflowActions(
+    microflow,
+    startEvent,
+    createActivity,
+    ConnectionType.LEFT_RIGHT
+  );
+  connectMicroflowActions(
+    microflow,
+    createActivity,
+    endEvent,
+    ConnectionType.LEFT_RIGHT
+  );
 };
 
-export function connectMicroflowActions(
-  microflow: microflows.Microflow,
-  start: microflows.MicroflowObject,
-  end: microflows.MicroflowObject,
-  connectionType: ConnectionType
-): microflows.SequenceFlow {
-  const flow = microflows.SequenceFlow.createIn(microflow);
-  flow.origin = start;
-  flow.destination = end;
-  switch (connectionType) {
-    case ConnectionType.LEFT_RIGHT:
-      flow.originConnectionIndex = 1;
-      flow.destinationConnectionIndex = 3;
-      break;
-    case ConnectionType.TOP_BOTTOM:
-      flow.originConnectionIndex = 2;
-      flow.destinationConnectionIndex = 0;
-      break;
-    default:
-      throw Error(`Unsupported ConnectionType: ${connectionType}`);
-  }
-  return flow;
-}
 
-export enum ConnectionType {
-  TOP_BOTTOM,
-  LEFT_RIGHT,
-}

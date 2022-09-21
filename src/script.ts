@@ -10,12 +10,8 @@ import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
 import {
-  ConnectionType,
-  connectMicroflowActions,
-  createCreateAction,
-  createEndEvent,
-  createMicroflow,
-  createStartEvent,
+  createDefaultCreateMicroflow,
+  createDefaultDeleteMicroflow,
   getOrCreateAttribute,
   getOrCreateDomainModel,
   getOrCreateEntity,
@@ -49,32 +45,11 @@ async function main() {
     getOrCreateAttribute(newEnt, "Active", PrimitiveType.BOOLEAN);
 
     const entObjFolder = getOrCreateFolder(objectsFolder, ent.Name);
-
-    const microflow = createMicroflow(entObjFolder, `${newEnt.name}_Create`);
-    const startEvent = createStartEvent(microflow);
-    const createActivity = createCreateAction(microflow, newEnt);
-    const endEvent = createEndEvent(microflow, 280);
-    endEvent.returnValue = "$New" + newEnt.name;
-    datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
-      microflow
-    ).entity = newEnt;
-    connectMicroflowActions(
-      microflow,
-      startEvent,
-      createActivity,
-      ConnectionType.LEFT_RIGHT
-    );
-    connectMicroflowActions(
-      microflow,
-      createActivity,
-      endEvent,
-      ConnectionType.LEFT_RIGHT
-    );
+    createDefaultCreateMicroflow(newEnt,entObjFolder);
+    createDefaultDeleteMicroflow(newEnt,entObjFolder);
   }
 
   await model.flushChanges();
 
   await workingCopy.commitToRepository(input.BranchName);
 }
-
-main().catch(console.error);

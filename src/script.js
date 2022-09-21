@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const mendixmodelsdk_1 = require("mendixmodelsdk");
 const mendixplatformsdk_1 = require("mendixplatformsdk");
 const input_json_1 = __importDefault(require("./input.json"));
 const AttributeType_1 = require("./types/AttributeType");
@@ -27,16 +26,24 @@ async function main() {
         (0, utils_1.getOrCreateAttribute)(newEnt, "Description");
         (0, utils_1.getOrCreateAttribute)(newEnt, "Active", AttributeType_1.PrimitiveType.BOOLEAN);
         const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
-        const microflow = (0, utils_1.createMicroflow)(entObjFolder, `${newEnt.name}_Create`);
-        const startEvent = (0, utils_1.createStartEvent)(microflow);
-        const createActivity = (0, utils_1.createCreateAction)(microflow, newEnt);
-        const endEvent = (0, utils_1.createEndEvent)(microflow, 280);
-        endEvent.returnValue = "$New" + newEnt.name;
-        mendixmodelsdk_1.datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(microflow).entity = newEnt;
-        (0, utils_1.connectMicroflowActions)(microflow, startEvent, createActivity, utils_1.ConnectionType.LEFT_RIGHT);
-        (0, utils_1.connectMicroflowActions)(microflow, createActivity, endEvent, utils_1.ConnectionType.LEFT_RIGHT);
+        (0, utils_1.createDefaultCreateMicroflow)(newEnt, entObjFolder);
     }
     await model.flushChanges();
     await workingCopy.commitToRepository(input_json_1.default.BranchName);
 }
 main().catch(console.error);
+function createMicroflow(entObjFolder, arg1) {
+    throw new Error("Function not implemented.");
+}
+function createStartEvent(microflow) {
+    throw new Error("Function not implemented.");
+}
+function createEndEvent(microflow, arg1) {
+    throw new Error("Function not implemented.");
+}
+function createCreateAction(microflow, newEnt) {
+    throw new Error("Function not implemented.");
+}
+function connectMicroflowActions(microflow, startEvent, createActivity, LEFT_RIGHT) {
+    throw new Error("Function not implemented.");
+}
