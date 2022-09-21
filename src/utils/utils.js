@@ -89,7 +89,7 @@ documentation //Optional: will be added to the Attribute documentation.
         case AttributeType_1.PrimitiveType.BOOLEAN:
             mendixmodelsdk_1.domainmodels.BooleanAttributeType.createInAttributeUnderType(NewAttribute);
             const defaultBooleanValue = mendixmodelsdk_1.domainmodels.StoredValue.createIn(NewAttribute);
-            defaultBooleanValue.defaultValue = "true";
+            defaultBooleanValue.defaultValue = defaultValue ||"false";
             break;
         case AttributeType_1.PrimitiveType.DATE || AttributeType_1.PrimitiveType.DATE_TIME:
             mendixmodelsdk_1.domainmodels.DateTimeAttributeType.createInAttributeUnderType(NewAttribute);
