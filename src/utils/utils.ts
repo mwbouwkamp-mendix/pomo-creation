@@ -57,48 +57,59 @@ export const getOrCreateEntity = (
   domainModel: domainmodels.DomainModel,
   entityName: string,
   x: number,
-  y: number
+  y: number,
+  documentation?: string
 ) => {
   const existingEntity = domainModel.entities.filter(
     (dm) => dm.name === entityName
   )[0];
   if (existingEntity) return existingEntity;
-  return createEntity(domainModel, entityName, x, y);
+  else
+    return createEntity(domainModel, entityName, x, y,documentation);
 };
 
 const createEntity = (
-  domainModel: domainmodels.DomainModel,
-  entityName: string,
+  domainModel: domainmodels.DomainModel,  //Required: On which Module do you need the entity.
+  entityName: string,                     //Required: Name of the Entity
   x: number,
-  y: number
+  y: number,
+  documentation ?: string 
 ) => {
   const newEntity = domainmodels.Entity.createIn(domainModel);
   newEntity.name = entityName;
+  newEntity.documentation = documentation || `This is default documentation for entity ${newEntity.name}.`
   newEntity.location = { x: x, y: y };
   return newEntity;
 };
+
 export const getOrCreateAttribute = (
-  Entity: domainmodels.Entity,
-  attributeName: string,
-  attributeType?: PrimitiveType,
-  length?: number
+  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
+  attributeName: string,          //Required: Name of the attribute
+  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
+  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
+  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+  documentation?: string          //Optional: will be added to the Attribute documentation.
 ) => {
   const ExistingAttribute = Entity.attributes.filter(
     (dm) => dm.name === attributeName
   )[0];
   if (ExistingAttribute) return ExistingAttribute;
-  return createAttribute(Entity, attributeName, attributeType, length);
+  return createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation);
 };
 
+
 const createAttribute = (
-  Entity: domainmodels.Entity,
-  attributeName: string,
-  attributeType?: PrimitiveType,
-  length?: number
+  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
+  attributeName: string,          //Required: Name of the attribute
+  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
+  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
+  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+  documentation?: string          //Optional: will be added to the Attribute documentation.
 ) => {
   const NewAttribute = domainmodels.Attribute.createIn(Entity);
   const type = attributeType || PrimitiveType.STRING;
   NewAttribute.name = attributeName;
+  NewAttribute.documentation = documentation || `This is default documentation for ${attributeName} on ${Entity.name}`;
   switch (type) {
     case PrimitiveType.BINARY:
       domainmodels.BinaryAttributeType.createInAttributeUnderType(NewAttribute);
@@ -108,7 +119,7 @@ const createAttribute = (
         NewAttribute
       );
       const defaultBooleanValue = domainmodels.StoredValue.createIn(NewAttribute);
-      defaultBooleanValue.defaultValue = "true";
+      defaultBooleanValue.defaultValue = defaultValue || "false";
       break;
     case PrimitiveType.DATE || PrimitiveType.DATE_TIME:
       domainmodels.DateTimeAttributeType.createInAttributeUnderType(
