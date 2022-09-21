@@ -12,7 +12,9 @@ const getOrCreateDomainModel = async (model) => {
 };
 exports.getOrCreateDomainModel = getOrCreateDomainModel;
 const getDomainModelInterface = (model) => {
-    const existingDomainModelInterface = model.allDomainModels().filter(dm => dm.containerAsModule.name === input_json_1.default.Module)[0];
+    const existingDomainModelInterface = model
+        .allDomainModels()
+        .filter((dm) => dm.containerAsModule.name === input_json_1.default.Module)[0];
     if (existingDomainModelInterface)
         return existingDomainModelInterface;
     else
@@ -27,7 +29,7 @@ const createDomainModelInterface = (model) => {
     return module.domainModel;
 };
 const getOrCreateFolder = (location, name) => {
-    const existingFolder = location.folders.filter(folder => folder.name === name)[0];
+    const existingFolder = location.folders.filter((folder) => folder.name === name)[0];
     if (existingFolder)
         return existingFolder;
     else
@@ -40,7 +42,7 @@ const createFolder = (location, name) => {
     return folder;
 };
 const getOrCreateEntity = (domainModel, entityName, x, y) => {
-    const existingEntity = domainModel.entities.filter(dm => dm.name === entityName)[0];
+    const existingEntity = domainModel.entities.filter((dm) => dm.name === entityName)[0];
     if (existingEntity)
         return existingEntity;
     return createEntity(domainModel, entityName, x, y);
@@ -53,7 +55,7 @@ const createEntity = (domainModel, entityName, x, y) => {
     return newEntity;
 };
 const getOrCreateAttribute = (Entity, attributeName, attributeType, length) => {
-    const ExistingAttribute = Entity.attributes.filter(dm => dm.name === attributeName)[0];
+    const ExistingAttribute = Entity.attributes.filter((dm) => dm.name === attributeName)[0];
     if (ExistingAttribute)
         return ExistingAttribute;
     return createAttribute(Entity, attributeName, attributeType, length);
