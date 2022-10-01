@@ -10,6 +10,7 @@ import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
 import {
+  createDefaultCommitMicroflow,
   createDefaultCreateMicroflow,
   createDefaultDeleteMicroflow,
   getOrCreateAttribute,
@@ -47,6 +48,7 @@ async function main() {
     const entObjFolder = getOrCreateFolder(objectsFolder, ent.Name);
     createDefaultCreateMicroflow(newEnt,entObjFolder);
     createDefaultDeleteMicroflow(newEnt,entObjFolder);
+    createDefaultCommitMicroflow(newEnt,entObjFolder);
   }
 
   await model.flushChanges();

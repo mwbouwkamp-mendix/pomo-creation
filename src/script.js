@@ -28,6 +28,7 @@ async function main() {
         const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
         (0, utils_1.createDefaultCreateMicroflow)(newEnt, entObjFolder);
         (0, utils_1.createDefaultDeleteMicroflow)(newEnt, entObjFolder);
+        (0, utils_1.createDefaultCommitMicroflow)(newEnt, entObjFolder);
     }
     await model.flushChanges();
     await workingCopy.commitToRepository(input_json_1.default.BranchName);

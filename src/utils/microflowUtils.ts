@@ -1,4 +1,5 @@
-import { domainmodels, microflows, projects } from "mendixmodelsdk";
+import { datatypes, domainmodels, IModel, microflows, projects } from "mendixmodelsdk";
+import { IPropertyVersionInfo } from "mendixmodelsdk/src/sdk/internal";
 
 export const createMicroflow = (
   location: projects.IFolderBase,
@@ -7,6 +8,22 @@ export const createMicroflow = (
   const microflow = microflows.Microflow.createIn(location);
   microflow.name = name;
   return microflow;
+};
+
+export const createInputParameter = (
+  microflow: microflows.Microflow,
+  ent: domainmodels.Entity,
+  parameterName?: string,
+  documentation?: string
+) => {
+  const objectCollection = microflow.objectCollection;
+  const inputParameter = microflows.MicroflowParameterObject.createIn(objectCollection);
+        inputParameter.name           = parameterName || ent.name;
+        inputParameter.documentation  = documentation || `Input parameter of type ${ent.name} and name ${parameterName}.`;
+  const dataType = datatypes.ObjectType.create(ent.model);
+        dataType.entity = ent;
+  inputParameter.variableType = dataType;
+  return inputParameter;
 };
 
 export const createStartEvent = (
@@ -83,10 +100,10 @@ const createCreateAction = (
 
 export const createAndAttachDeleteAction = (
   microflow: microflows.Microflow,
-  entity: domainmodels.Entity,
+  variableToDelete: string,
   attachAfterObject: microflows.MicroflowObject
 ): microflows.ActionActivity => {
-  const actionActivity = createDeleteAction(microflow, entity, attachAfterObject.relativeMiddlePoint.x + 140);
+  const actionActivity = createDeleteAction(microflow, variableToDelete, attachAfterObject.relativeMiddlePoint.x + 140);
   connectMicroflowActions(
     microflow,
     attachAfterObject,
@@ -98,12 +115,40 @@ export const createAndAttachDeleteAction = (
 
 const createDeleteAction = (
   microflow: microflows.Microflow,
-  entity: domainmodels.Entity,
+  variableToDelete: string,
   x: number
 ): microflows.ActionActivity => {
   const actionActivity = createMicroflowAction(microflow, x, 1);
   const DeleteObject = microflows.DeleteAction.createIn(actionActivity);
   DeleteObject.refreshInClient = true;
+  DeleteObject.deleteVariableName = variableToDelete;
+  return actionActivity;
+};
+
+export const createAndAttachCommitAction = (
+  microflow: microflows.Microflow,
+  variableToDelete: string,
+  attachAfterObject: microflows.MicroflowObject
+): microflows.ActionActivity => {
+  const actionActivity = createCommitAction(microflow, variableToDelete, attachAfterObject.relativeMiddlePoint.x + 140);
+  connectMicroflowActions(
+    microflow,
+    attachAfterObject,
+    actionActivity,
+    ConnectionType.LEFT_RIGHT
+  );
+  return actionActivity;
+};
+
+const createCommitAction = (
+  microflow: microflows.Microflow,
+  variableToCommit: string,
+  x: number
+): microflows.ActionActivity => {
+  const actionActivity = createMicroflowAction(microflow, x, 1);
+  const CommitObject = microflows.CommitAction.createIn(actionActivity);
+  CommitObject.refreshInClient = true;
+  CommitObject.commitVariableName = variableToCommit;
   return actionActivity;
 };
 

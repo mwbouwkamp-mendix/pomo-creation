@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createDefaultCreateMicroflow = exports.createDefaultDeleteMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
+exports.createDefaultCreateMicroflow = exports.createDefaultCommitMicroflow = exports.createDefaultDeleteMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
 const mendixmodelsdk_1 = require("mendixmodelsdk");
 const microflowUtils_1 = require("./microflowUtils");
 const input_json_1 = __importDefault(require("../input.json"));
@@ -89,7 +89,7 @@ documentation //Optional: will be added to the Attribute documentation.
         case AttributeType_1.PrimitiveType.BOOLEAN:
             mendixmodelsdk_1.domainmodels.BooleanAttributeType.createInAttributeUnderType(NewAttribute);
             const defaultBooleanValue = mendixmodelsdk_1.domainmodels.StoredValue.createIn(NewAttribute);
-            defaultBooleanValue.defaultValue = defaultValue ||"false";
+            defaultBooleanValue.defaultValue = defaultValue || "false";
             break;
         case AttributeType_1.PrimitiveType.DATE || AttributeType_1.PrimitiveType.DATE_TIME:
             mendixmodelsdk_1.domainmodels.DateTimeAttributeType.createInAttributeUnderType(NewAttribute);
@@ -120,11 +120,23 @@ entity, //Entity to delete
 folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
     const microflow = (0, microflowUtils_1.createMicroflow)(folder, `${entity.name}_Delete`);
+    const inputParam = (0, microflowUtils_1.createInputParameter)(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
     const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
-    const deleteActivity = (0, microflowUtils_1.createAndAttachDeleteAction)(microflow, entity, startEvent);
+    const deleteActivity = (0, microflowUtils_1.createAndAttachDeleteAction)(microflow, inputParam.name, startEvent);
     const endEvent = (0, microflowUtils_1.createAndAttachEndEvent)(microflow, deleteActivity);
 };
 exports.createDefaultDeleteMicroflow = createDefaultDeleteMicroflow;
+const createDefaultCommitMicroflow = (//Needs input parameter
+entity, //Entity to delete
+folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+) => {
+    const microflow = (0, microflowUtils_1.createMicroflow)(folder, `${entity.name}_Commit`);
+    const inputParam = (0, microflowUtils_1.createInputParameter)(microflow, entity, `${entity.name}_ToCommit`, 'input parameter to commit');
+    const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
+    const deleteActivity = (0, microflowUtils_1.createAndAttachCommitAction)(microflow, inputParam.name, startEvent);
+    const endEvent = (0, microflowUtils_1.createAndAttachEndEvent)(microflow, deleteActivity);
+};
+exports.createDefaultCommitMicroflow = createDefaultCommitMicroflow;
 const createDefaultCreateMicroflow = (entity, //Entity to create
 folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {

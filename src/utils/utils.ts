@@ -7,7 +7,7 @@ import {
   projects,
   security,
 } from "mendixmodelsdk";
-import { ConnectionType, connectMicroflowActions, createAndAttachCreateAction, createAndAttachDeleteAction, createAndAttachEndEvent, createMicroflow, createStartEvent } from "./microflowUtils";
+import { ConnectionType, connectMicroflowActions, createAndAttachCommitAction, createAndAttachCreateAction, createAndAttachDeleteAction, createAndAttachEndEvent, createInputParameter, createMicroflow, createStartEvent } from "./microflowUtils";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "../input.json";
 import { PrimitiveType } from "../types/AttributeType";
@@ -160,8 +160,20 @@ export const createDefaultDeleteMicroflow = ( //Needs input parameter
   folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
   const microflow = createMicroflow(folder, `${entity.name}_Delete`);
+  const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
   const startEvent = createStartEvent(microflow);
-  const deleteActivity = createAndAttachDeleteAction(microflow, entity, startEvent);
+  const deleteActivity = createAndAttachDeleteAction(microflow, inputParam.name, startEvent);
+  const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
+};
+
+export const createDefaultCommitMicroflow = ( //Needs input parameter
+  entity: domainmodels.Entity,  //Entity to delete
+  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+) => {
+  const microflow = createMicroflow(folder, `${entity.name}_Commit`);
+  const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToCommit`, 'input parameter to commit');
+  const startEvent = createStartEvent(microflow);
+  const deleteActivity = createAndAttachCommitAction(microflow, inputParam.name, startEvent);
   const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
 };
 
