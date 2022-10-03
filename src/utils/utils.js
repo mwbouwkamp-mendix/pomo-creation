@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createDefaultCreateMicroflow = exports.createDefaultCommitMicroflow = exports.createDefaultDeleteMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
+exports.getOrCreateDefaultCreateMicroflow = exports.createDefaultCommitMicroflow = exports.createDefaultDeleteMicroflow = exports.getOrCreateAttribute = exports.getOrCreateEntity = exports.getOrCreateFolder = exports.getOrCreateDomainModel = void 0;
 const mendixmodelsdk_1 = require("mendixmodelsdk");
 const microflowUtils_1 = require("./microflowUtils");
 const input_json_1 = __importDefault(require("../input.json"));
@@ -119,6 +119,8 @@ const createDefaultDeleteMicroflow = (//Needs input parameter
 entity, //Entity to delete
 folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
+    const name = `${entity.name}_Delete`;
+    folder.documents;
     const microflow = (0, microflowUtils_1.createMicroflow)(folder, `${entity.name}_Delete`);
     const inputParam = (0, microflowUtils_1.createInputParameter)(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
     const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
@@ -137,14 +139,24 @@ folder //Ideally this should be optional and the module should be required to ma
     const endEvent = (0, microflowUtils_1.createAndAttachEndEvent)(microflow, deleteActivity);
 };
 exports.createDefaultCommitMicroflow = createDefaultCommitMicroflow;
-const createDefaultCreateMicroflow = (entity, //Entity to create
+const getOrCreateDefaultCreateMicroflow = (entity, //Entity to create
 folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
-    const microflow = (0, microflowUtils_1.createMicroflow)(folder, `${entity.name}_Create`);
+    const microflowName = `${entity.name}_Create`;
+    const existingMicroflow = folder.documents.filter((dm) => dm.name === microflowName)[0];
+    if (existingMicroflow) {
+        return existingMicroflow;
+    }
+    return createDefaultCreateMicroflow(entity, microflowName, folder);
+};
+exports.getOrCreateDefaultCreateMicroflow = getOrCreateDefaultCreateMicroflow;
+const createDefaultCreateMicroflow = (entity, //Entity to create
+microflowName, folder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+) => {
+    const microflow = (0, microflowUtils_1.createMicroflow)(folder, microflowName);
     const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
     const createActivity = (0, microflowUtils_1.createAndAttachCreateAction)(microflow, entity, startEvent);
     const endEvent = (0, microflowUtils_1.createAndAttachEndEvent)(microflow, createActivity);
     endEvent.returnValue = "$New" + entity.name;
     mendixmodelsdk_1.datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(microflow).entity = entity;
 };
-exports.createDefaultCreateMicroflow = createDefaultCreateMicroflow;

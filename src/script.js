@@ -26,7 +26,7 @@ async function main() {
         (0, utils_1.getOrCreateAttribute)(newEnt, "Description");
         (0, utils_1.getOrCreateAttribute)(newEnt, "Active", AttributeType_1.PrimitiveType.BOOLEAN);
         const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
-        (0, utils_1.createDefaultCreateMicroflow)(newEnt, entObjFolder);
+        (0, utils_1.getOrCreateDefaultCreateMicroflow)(newEnt, entObjFolder);
         (0, utils_1.createDefaultDeleteMicroflow)(newEnt, entObjFolder);
         (0, utils_1.createDefaultCommitMicroflow)(newEnt, entObjFolder);
     }

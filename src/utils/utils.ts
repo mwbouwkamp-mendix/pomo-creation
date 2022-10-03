@@ -159,6 +159,8 @@ export const createDefaultDeleteMicroflow = ( //Needs input parameter
   entity: domainmodels.Entity,  //Entity to delete
   folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
+  const name  = `${entity.name}_Delete`;
+  folder.documents
   const microflow = createMicroflow(folder, `${entity.name}_Delete`);
   const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
   const startEvent = createStartEvent(microflow);
@@ -177,11 +179,27 @@ export const createDefaultCommitMicroflow = ( //Needs input parameter
   const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
 };
 
-export const createDefaultCreateMicroflow = (
+export const getOrCreateDefaultCreateMicroflow = (
   entity: domainmodels.Entity,  //Entity to create
   folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
-  const microflow = createMicroflow(folder, `${entity.name}_Create`);
+  const microflowName = `${entity.name}_Create`;
+  const existingMicroflow = folder.documents.filter(
+    (dm) => dm.name === microflowName
+  )[0];
+  if (existingMicroflow) {
+    return existingMicroflow
+  }
+  return createDefaultCreateMicroflow(entity, microflowName, folder)
+};
+
+
+const createDefaultCreateMicroflow = (
+  entity: domainmodels.Entity,  //Entity to create
+  microflowName: string,
+  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+) => {
+  const microflow = createMicroflow(folder, microflowName);
   const startEvent = createStartEvent(microflow);
   const createActivity = createAndAttachCreateAction(microflow, entity, startEvent);
   const endEvent = createAndAttachEndEvent(microflow, createActivity);

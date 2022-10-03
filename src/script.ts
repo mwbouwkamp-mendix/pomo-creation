@@ -11,7 +11,7 @@ import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
 import {
   createDefaultCommitMicroflow,
-  createDefaultCreateMicroflow,
+  getOrCreateDefaultCreateMicroflow,
   createDefaultDeleteMicroflow,
   getOrCreateAttribute,
   getOrCreateDomainModel,
@@ -46,7 +46,7 @@ async function main() {
     getOrCreateAttribute(newEnt, "Active", PrimitiveType.BOOLEAN);
 
     const entObjFolder = getOrCreateFolder(objectsFolder, ent.Name);
-    createDefaultCreateMicroflow(newEnt,entObjFolder);
+    getOrCreateDefaultCreateMicroflow(newEnt,entObjFolder);
     createDefaultDeleteMicroflow(newEnt,entObjFolder);
     createDefaultCommitMicroflow(newEnt,entObjFolder);
   }
