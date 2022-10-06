@@ -22,5 +22,6 @@ Note: Never commit changes to either develop or master!
 ## Licene
 Apache v2.0
 
-## Contact2
+
+## Contact
 marco.bouwkamp@mendix.com
