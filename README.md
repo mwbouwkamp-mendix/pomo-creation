@@ -12,10 +12,12 @@ Please visit [Mendix Platform SDK](https://docs.mendix.com/apidocs-mxsdk/mxsdk/)
 
 ## Contributing
 * Fork the project 
-* Create a feature branch from the developer branch
+* Create a feature branch from the branch develop
 * Commit your changes
 * Push to branch
 * Open a Pull Request
+
+Note: Never commit changes to either develop or master!
 
 ## Licene
 Apache v2.0
