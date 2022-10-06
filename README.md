@@ -6,7 +6,7 @@ This project aims to develop an easy to use script for the creation of Mendix ob
 For this, the project leverages the Mendix SDK.
 
 ## Getting started
-Please visit [https://docs.mendix.com/apidocs-mxsdk/mxsdk/](Mendix Platform SDK) for more information on the Mendix SDK in general and on how to get started with working with the sdk in particular.
+Please visit [Mendix Platform SDK](https://docs.mendix.com/apidocs-mxsdk/mxsdk/) for more information on the Mendix SDK in general and on how to get started with working with the sdk in particular.
 
 ## Contributing
 * Fork the project 
