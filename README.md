@@ -11,7 +11,7 @@ About the project name: pomo stands for plain old mendix object.
 Please visit [Mendix Platform SDK](https://docs.mendix.com/apidocs-mxsdk/mxsdk/) for more information on the Mendix SDK in general and on how to get started with working with the sdk in particular.
 
 ## Contributing
-* Fork the project 
+* Checkout the project 
 * Create a feature branch from the branch develop
 * Commit your changes
 * Push to branch
