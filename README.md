@@ -1,7 +1,7 @@
 # pomo-creation
 
 ## About the project
-This project aims to develop an easy to use script for the creation of Mendix objects, including based microflows for the default CRUD oeprations and validations.
+This project aims to develop an easy to use script for the creation of Mendix objects, including microflows for the default CRUD oeprations and validations.
 
 For this, the project leverages the Mendix SDK.
 
