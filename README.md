@@ -12,7 +12,7 @@ Please visit [Mendix Platform SDK](https://docs.mendix.com/apidocs-mxsdk/mxsdk/)
 
 ## Contributing
 * Checkout the project 
-* Create a feature branch from the branch develop
+* Create a feature branch from the branch develop (source control -> elipsis -> branch -> Create branch)
 * Commit your changes
 * Push to branch
 * Open a Pull Request
