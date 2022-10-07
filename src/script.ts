@@ -1,11 +1,3 @@
-import {
-  datatypes,
-  domainmodels,
-  EnumProperty,
-  IModel,
-  projects,
-  security,
-} from "mendixmodelsdk";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
