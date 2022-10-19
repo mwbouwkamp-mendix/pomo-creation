@@ -1,37 +1,103 @@
 {
-    "AppId":"99abffb7-dd91-4d75-848f-d992d9bedced",
-    "BranchName":"branches/Remco",
-    "Module": "MFIModule_MWB3",
-    "Entities": [
+    "AppID": "9283b51f-9a05-4010-b89a-da37b257feb4-----",
+    "BranchLine": "branch_initialSetup",
+    "Modules": [
         {
-            "Name": "Marco"
-        },
-        {
-            "Name": "Delion"
-        },
-        {
-            "Name": "Remco"
-        },
-        {
-            "Name": "Stephan"
-        },
-        {
-            "Name": "Wesley"
-        },
-        {
-            "Name": "Stella"
-        },
-        {
-            "Name": "Dennis"
-        },
-        {
-            "Name": "Alex_1"
-        },
-        {
-            "Name": "Alex_2"
-        },
-        {
-            "Name": "Alex_3"
+            "Name": "SDK Extension",
+            "Entitys": [
+                {
+                    "Name": "Brand",
+                    "Attributes": [
+                        {
+                            "Name": "_Id",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": true
+                            }
+                        },
+                        {
+                            "Name": "Name",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "Category",
+                    "Attributes": [
+                        {
+                            "Name": "_Id",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": true
+                            }
+                        },
+                        {
+                            "Name": "Name",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "SubCategory",
+                    "Attributes": [
+                        {
+                            "Name": "_Id",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": true
+                            }
+                        },
+                        {
+                            "Name": "Name",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "Name": "Product",
+                    "Attributes": [
+                        {
+                            "Name": "_Id",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": true
+                            }
+                        },
+                        {
+                            "Name": "Name",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": false
+                            }
+                        },
+                        {
+                            "Name": "Size",
+                            "_Type": "_STRING",
+                            "Validation": {
+                                "isRequired": true,
+                                "isUnique": false
+                            }
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

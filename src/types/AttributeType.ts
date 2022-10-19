@@ -7,4 +7,5 @@ export enum PrimitiveType {
   INTEGER = "INTEGER",
   LONG = "LONG",
   STRING = "STRING",
+  ENUMERATION = "ENUMERATION"
 }

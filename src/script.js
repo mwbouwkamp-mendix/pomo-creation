@@ -12,6 +12,7 @@ async function main() {
     const client = new mendixplatformsdk_1.MendixPlatformClient();
     const app = client.getApp(input_json_1.default.AppId);
     const repo = app.getRepository();
+    console.log(await repo.getBranches());
     const workingCopy = await app.createTemporaryWorkingCopy(input_json_1.default.BranchName);
     const model = await workingCopy.openModel();
     const domainModel = await (0, utils_1.getOrCreateDomainModel)(model);
@@ -22,9 +23,15 @@ async function main() {
         const newEnt = (0, utils_1.getOrCreateEntity)(domainModel, ent.Name, x, y);
         x += 100;
         y += 100;
-        (0, utils_1.getOrCreateAttribute)(newEnt, "Name");
-        (0, utils_1.getOrCreateAttribute)(newEnt, "Description");
-        (0, utils_1.getOrCreateAttribute)(newEnt, "Active", AttributeType_1.PrimitiveType.BOOLEAN);
+        for (var att of ent.attributes) {
+            try {
+                (0, utils_1.getOrCreateAttribute)(newEnt, att.Name, AttributeType_1.PrimitiveType[att.Type]);
+            }
+            catch {
+                (0, utils_1.getOrCreateAttribute)(newEnt, att.Name, AttributeType_1.PrimitiveType.STRING);
+                att.Type = AttributeType_1.PrimitiveType.STRING;
+            }
+        }
         const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
         (0, utils_1.getOrCreateDefaultCreateMicroflow)(newEnt, entObjFolder);
         (0, utils_1.createDefaultDeleteMicroflow)(newEnt, entObjFolder);

@@ -15,7 +15,7 @@ exports.getOrCreateDomainModel = getOrCreateDomainModel;
 const getDomainModelInterface = (model) => {
     const existingDomainModelInterface = model
         .allDomainModels()
-        .filter((dm) => dm.containerAsModule.name === input_json_1.default.Module)[0];
+        .filter((dm) => dm.containerAsModule.name === input_json_1.default.ModuleName)[0];
     if (existingDomainModelInterface)
         return existingDomainModelInterface;
     else
@@ -24,7 +24,7 @@ const getDomainModelInterface = (model) => {
 const createDomainModelInterface = (model) => {
     const project = model.allProjects()[0];
     const module = mendixmodelsdk_1.projects.Module.createIn(project);
-    module.name = input_json_1.default.Module;
+    module.name = input_json_1.default.ModuleName;
     mendixmodelsdk_1.domainmodels.DomainModel.createIn(module);
     mendixmodelsdk_1.security.ModuleSecurity.createIn(module);
     return module.domainModel;

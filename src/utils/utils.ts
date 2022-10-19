@@ -13,25 +13,27 @@ import input from "../input.json";
 import { PrimitiveType } from "../types/AttributeType";
 
 export const getOrCreateDomainModel = async (
-  model: IModel
+  model: IModel,
+  moduleName: string
 ): Promise<domainmodels.DomainModel> => {
-  return await getDomainModelInterface(model).load();
+  return await getDomainModelInterface(model, moduleName).load();
 };
 
-const getDomainModelInterface = (model: IModel): domainmodels.IDomainModel => {
+const getDomainModelInterface = (model: IModel, moduleName: string): domainmodels.IDomainModel => {
   const existingDomainModelInterface = model
     .allDomainModels()
-    .filter((dm) => dm.containerAsModule.name === input.Module)[0];
+    .filter((dm) => dm.containerAsModule.name === moduleName)[0];
   if (existingDomainModelInterface) return existingDomainModelInterface;
-  else return createDomainModelInterface(model);
+  else return createDomainModelInterface(model, moduleName);
 };
 
 const createDomainModelInterface = (
-  model: IModel
+  model: IModel,
+  moduleName: string
 ): domainmodels.IDomainModel => {
   const project = model.allProjects()[0];
   const module = projects.Module.createIn(project);
-  module.name = input.Module;
+  module.name = moduleName;
   domainmodels.DomainModel.createIn(module);
   security.ModuleSecurity.createIn(module);
   return module.domainModel;
@@ -159,7 +161,7 @@ export const createDefaultDeleteMicroflow = ( //Needs input parameter
   entity: domainmodels.Entity,  //Entity to delete
   folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
-  const name  = `${entity.name}_Delete`;
+  const name = `${entity.name}_Delete`;
   folder.documents
   const microflow = createMicroflow(folder, `${entity.name}_Delete`);
   const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
