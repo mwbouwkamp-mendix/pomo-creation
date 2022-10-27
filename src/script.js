@@ -10,34 +10,34 @@ const utils_1 = require("./utils/utils");
 //import {Input} from './types/InputType'
 async function main() {
     const client = new mendixplatformsdk_1.MendixPlatformClient();
-    const app = client.getApp(input_json_1.default.AppId);
+    const app = client.getApp(input_json_1.default.AppID);
     const repo = app.getRepository();
-    console.log(await repo.getBranches());
-    const workingCopy = await app.createTemporaryWorkingCopy(input_json_1.default.BranchName);
+    const branches = await repo.getBranches();
+    console.log(branches);
+    const workingCopy = await app.createTemporaryWorkingCopy(input_json_1.default.BranchLine);
     const model = await workingCopy.openModel();
-    const domainModel = await (0, utils_1.getOrCreateDomainModel)(model);
-    const objectsFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "objects");
-    let x = 0;
-    let y = 0;
-    for (var ent of input_json_1.default.Entities) {
-        const newEnt = (0, utils_1.getOrCreateEntity)(domainModel, ent.Name, x, y);
-        x += 100;
-        y += 100;
-        for (var att of ent.attributes) {
-            try {
-                (0, utils_1.getOrCreateAttribute)(newEnt, att.Name, AttributeType_1.PrimitiveType[att.Type]);
+    for (const module of input_json_1.default.Modules) {
+        let x = 0;
+        let y = 0;
+        const domainModel = await (0, utils_1.getOrCreateDomainModel)(model, module.Name);
+        const objectsFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "objects");
+        const pagesFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "pages");
+        const resourcesFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "resources");
+        for (const entity of module.Entitys) {
+            const entityObjectFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, entity.Name);
+            const newEntity = (0, utils_1.getOrCreateEntity)(domainModel, entity.Name, x, y);
+            y += 100;
+            for (let att of entity.Attributes) {
+                const type = AttributeType_1.PrimitiveType[att._Type];
+                (0, utils_1.getOrCreateAttribute)(newEntity, att.Name, type || AttributeType_1.PrimitiveType.STRING);
             }
-            catch {
-                (0, utils_1.getOrCreateAttribute)(newEnt, att.Name, AttributeType_1.PrimitiveType.STRING);
-                att.Type = AttributeType_1.PrimitiveType.STRING;
-            }
+            (0, utils_1.getOrCreateDefaultCreateMicroflow)(newEntity, entityObjectFolder);
+            (0, utils_1.createDefaultDeleteMicroflow)(newEntity, entityObjectFolder);
+            (0, utils_1.createDefaultCommitMicroflow)(newEntity, entityObjectFolder);
+            const entityPageFolder = (0, utils_1.getOrCreateFolder)(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
         }
-        const entObjFolder = (0, utils_1.getOrCreateFolder)(objectsFolder, ent.Name);
-        (0, utils_1.getOrCreateDefaultCreateMicroflow)(newEnt, entObjFolder);
-        (0, utils_1.createDefaultDeleteMicroflow)(newEnt, entObjFolder);
-        (0, utils_1.createDefaultCommitMicroflow)(newEnt, entObjFolder);
     }
     await model.flushChanges();
-    await workingCopy.commitToRepository(input_json_1.default.BranchName);
+    await workingCopy.commitToRepository(input_json_1.default.BranchLine);
 }
 main().catch(console.error);

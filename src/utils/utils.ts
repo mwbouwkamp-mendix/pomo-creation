@@ -1,30 +1,32 @@
 import {
   datatypes,
   domainmodels,
-  EnumProperty,
   IModel,
-  microflows,
   projects,
   security,
 } from "mendixmodelsdk";
-import { ConnectionType, connectMicroflowActions, createAndAttachCommitAction, createAndAttachCreateAction, createAndAttachDeleteAction, createAndAttachEndEvent, createInputParameter, createMicroflow, createStartEvent } from "./microflowUtils";
-import { MendixPlatformClient } from "mendixplatformsdk";
-import input from "../input.json";
+import {
+  createAndAttachCommitAction,
+  createAndAttachCreateAction,
+  createAndAttachDeleteAction,
+  createAndAttachEndEvent,
+  createInputParameter,
+  createMicroflow,
+  createStartEvent,
+} from "./microflowUtils";
 import { PrimitiveType } from "../types/AttributeType";
 
 export const getOrCreateDomainModel = async (
   model: IModel,
   moduleName: string
 ): Promise<domainmodels.DomainModel> => {
-  return await getDomainModelInterface(model, moduleName).load();
-};
-
-const getDomainModelInterface = (model: IModel, moduleName: string): domainmodels.IDomainModel => {
   const existingDomainModelInterface = model
     .allDomainModels()
-    .filter((dm) => dm.containerAsModule.name === moduleName)[0];
-  if (existingDomainModelInterface) return existingDomainModelInterface;
-  else return createDomainModelInterface(model, moduleName);
+    .find((dmi) => dmi.containerAsModule.name == moduleName);
+  const domainModelInterface =
+    existingDomainModelInterface ||
+    createDomainModelInterface(model, moduleName);
+  return await domainModelInterface.load();
 };
 
 const createDomainModelInterface = (
@@ -32,6 +34,7 @@ const createDomainModelInterface = (
   moduleName: string
 ): domainmodels.IDomainModel => {
   const project = model.allProjects()[0];
+  console.log(model.allProjects());
   const module = projects.Module.createIn(project);
   module.name = moduleName;
   domainmodels.DomainModel.createIn(module);
@@ -72,47 +75,67 @@ export const getOrCreateEntity = (
 };
 
 const createEntity = (
-  domainModel: domainmodels.DomainModel,  //Required: On which Module do you need the entity.
-  entityName: string,                     //Required: Name of the Entity
+  domainModel: domainmodels.DomainModel, //Required: On which Module do you need the entity.
+  entityName: string, //Required: Name of the Entity
   x: number,
   y: number,
   documentation?: string
 ) => {
   const newEntity = domainmodels.Entity.createIn(domainModel);
   newEntity.name = entityName;
-  newEntity.documentation = documentation || `This is default documentation for entity ${newEntity.name}.`
+  newEntity.documentation =
+    documentation ||
+    `This is default documentation for entity ${newEntity.name}.`;
   newEntity.location = { x: x, y: y };
   return newEntity;
 };
 
+/**
+ * Get or creates an attribute.
+ * @param Entity Required: On which Entity do you need the attribute.
+ * @param attributeName Required: Name of the attribute
+ * @param attributeType Optional: if empty set to primitiveType.STRING.
+ * @param length is only used for PrimitiveType.STRING, if empty set to 200.
+ * @param defaultValue is only used for PrimitiveType.BOOLEAN, if empty set to false.
+ * @param documentation Optional: will be added to the Attribute documentation.
+ * @returns domainmodels.attribute. Created attribute
+ */
 export const getOrCreateAttribute = (
-  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
-  attributeName: string,          //Required: Name of the attribute
-  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
-  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
-  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
-  documentation?: string          //Optional: will be added to the Attribute documentation.
-) => {
+  Entity: domainmodels.Entity,
+  attributeName: string,
+  attributeType?: PrimitiveType,
+  length?: number,
+  defaultValue?: string,
+  documentation?: string
+): domainmodels.Attribute => {
   const ExistingAttribute = Entity.attributes.filter(
     (dm) => dm.name === attributeName
   )[0];
   if (ExistingAttribute) return ExistingAttribute;
-  return createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation);
+  return createAttribute(
+    Entity,
+    attributeName,
+    attributeType,
+    length,
+    defaultValue,
+    documentation
+  );
 };
 
-
 const createAttribute = (
-  Entity: domainmodels.Entity,    //Required: On which Entity do you need the attribute.
-  attributeName: string,          //Required: Name of the attribute
-  attributeType?: PrimitiveType,  //Optional: if empty set to primitiveType.STRING.
-  length?: number,                //is only used for PrimitiveType.STRING, if empty set to 200.
-  defaultValue?: string,          //is only used for PrimitiveType.BOOLEAN, if empty set to false.
-  documentation?: string          //Optional: will be added to the Attribute documentation.
+  Entity: domainmodels.Entity, //Required: On which Entity do you need the attribute.
+  attributeName: string, //Required: Name of the attribute
+  attributeType?: PrimitiveType, //Optional: if empty set to primitiveType.STRING.
+  length?: number, //is only used for PrimitiveType.STRING, if empty set to 200.
+  defaultValue?: string, //is only used for PrimitiveType.BOOLEAN, if empty set to false.
+  documentation?: string //Optional: will be added to the Attribute documentation.
 ) => {
   const NewAttribute = domainmodels.Attribute.createIn(Entity);
   const type = attributeType || PrimitiveType.STRING;
   NewAttribute.name = attributeName;
-  NewAttribute.documentation = documentation || `This is default documentation for ${attributeName} on ${Entity.name}`;
+  NewAttribute.documentation =
+    documentation ||
+    `This is default documentation for ${attributeName} on ${Entity.name}`;
   switch (type) {
     case PrimitiveType.BINARY:
       domainmodels.BinaryAttributeType.createInAttributeUnderType(NewAttribute);
@@ -121,7 +144,8 @@ const createAttribute = (
       domainmodels.BooleanAttributeType.createInAttributeUnderType(
         NewAttribute
       );
-      const defaultBooleanValue = domainmodels.StoredValue.createIn(NewAttribute);
+      const defaultBooleanValue =
+        domainmodels.StoredValue.createIn(NewAttribute);
       defaultBooleanValue.defaultValue = defaultValue || "false";
       break;
     case PrimitiveType.DATE || PrimitiveType.DATE_TIME:
@@ -157,58 +181,79 @@ const createAttribute = (
   }
   return NewAttribute;
 };
-export const createDefaultDeleteMicroflow = ( //Needs input parameter
-  entity: domainmodels.Entity,  //Entity to delete
-  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+export const createDefaultDeleteMicroflow = (
+  //Needs input parameter
+  entity: domainmodels.Entity, //Entity to delete
+  folder: projects.IFolder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
   const name = `${entity.name}_Delete`;
-  folder.documents
+  folder.documents;
   const microflow = createMicroflow(folder, `${entity.name}_Delete`);
-  const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToDelete`, 'input parameter to delete');
+  const inputParam = createInputParameter(
+    microflow,
+    entity,
+    `${entity.name}_ToDelete`,
+    "input parameter to delete"
+  );
   const startEvent = createStartEvent(microflow);
-  const deleteActivity = createAndAttachDeleteAction(microflow, inputParam.name, startEvent);
-  const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
+  const deleteActivity = createAndAttachDeleteAction(
+    microflow,
+    inputParam.name,
+    startEvent
+  );
+  createAndAttachEndEvent(microflow, deleteActivity);
 };
 
-export const createDefaultCommitMicroflow = ( //Needs input parameter
-  entity: domainmodels.Entity,  //Entity to delete
-  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+export const createDefaultCommitMicroflow = (
+  //Needs input parameter
+  entity: domainmodels.Entity, //Entity to delete
+  folder: projects.IFolder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
   const microflow = createMicroflow(folder, `${entity.name}_Commit`);
-  const inputParam = createInputParameter(microflow, entity, `${entity.name}_ToCommit`, 'input parameter to commit');
+  const inputParam = createInputParameter(
+    microflow,
+    entity,
+    `${entity.name}_ToCommit`,
+    "input parameter to commit"
+  );
   const startEvent = createStartEvent(microflow);
-  const deleteActivity = createAndAttachCommitAction(microflow, inputParam.name, startEvent);
-  const endEvent = createAndAttachEndEvent(microflow, deleteActivity);
+  const deleteActivity = createAndAttachCommitAction(
+    microflow,
+    inputParam.name,
+    startEvent
+  );
+  createAndAttachEndEvent(microflow, deleteActivity);
 };
 
 export const getOrCreateDefaultCreateMicroflow = (
-  entity: domainmodels.Entity,  //Entity to create
-  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+  entity: domainmodels.Entity, //Entity to create
+  folder: projects.IFolder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
   const microflowName = `${entity.name}_Create`;
-  const existingMicroflow = folder.documents.filter(
+  const existingMicroflow = folder.documents.find(
     (dm) => dm.name === microflowName
-  )[0];
-  if (existingMicroflow) {
-    return existingMicroflow
-  }
-  return createDefaultCreateMicroflow(entity, microflowName, folder)
+  );
+  return (
+    existingMicroflow ||
+    createDefaultCreateMicroflow(entity, microflowName, folder)
+  );
 };
 
-
 const createDefaultCreateMicroflow = (
-  entity: domainmodels.Entity,  //Entity to create
+  entity: domainmodels.Entity, //Entity to create
   microflowName: string,
-  folder: projects.IFolder      //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
+  folder: projects.IFolder //Ideally this should be optional and the module should be required to make sure that we have unique microflow names.
 ) => {
   const microflow = createMicroflow(folder, microflowName);
   const startEvent = createStartEvent(microflow);
-  const createActivity = createAndAttachCreateAction(microflow, entity, startEvent);
+  const createActivity = createAndAttachCreateAction(
+    microflow,
+    entity,
+    startEvent
+  );
   const endEvent = createAndAttachEndEvent(microflow, createActivity);
   endEvent.returnValue = "$New" + entity.name;
   datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
     microflow
   ).entity = entity;
 };
-
-

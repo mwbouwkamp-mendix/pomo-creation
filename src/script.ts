@@ -1,4 +1,4 @@
-import { projects } from "mendixmodelsdk";
+import { microflows } from "mendixmodelsdk";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
@@ -16,16 +16,14 @@ import {
 async function main() {
   const client = new MendixPlatformClient();
   const app = client.getApp(input.AppID);
-  //const repo = app.getRepository();
-  //console.log(await repo.getBranches());
+  const repo = app.getRepository();
   const workingCopy = await app.createTemporaryWorkingCopy(input.BranchLine);
   const model = await workingCopy.openModel();
 
-
-  for (var mod of input.Modules) {
+  for (const module of input.Modules) {
     let x = 0;
     let y = 0;
-    const domainModel = await getOrCreateDomainModel(model, mod.Name);
+    const domainModel = await getOrCreateDomainModel(model, module.Name);
     const objectsFolder = getOrCreateFolder(
       domainModel.containerAsModule,
       "objects"
@@ -38,30 +36,25 @@ async function main() {
       domainModel.containerAsModule,
       "resources"
     );
-    for (let ent of mod.Entitys) {
-      const newEnt = getOrCreateEntity(domainModel, ent.Name, x, y);
-      x += 100;
+    for (const entity of module.Entitys) {
+      const entityObjectFolder = getOrCreateFolder(objectsFolder, entity.Name);
+      const newEntity = getOrCreateEntity(domainModel, entity.Name, x, y);
       y += 100;
-      for (let att of ent.Attributes) {
-        const type = PrimitiveType[att._Type as keyof typeof PrimitiveType]
-        if (type) {
-          getOrCreateAttribute(newEnt, att.Name, type);
-        }
-        else {
-          getOrCreateAttribute(newEnt, att.Name, PrimitiveType.STRING)
-        }
+      for (let att of entity.Attributes) {
+        const type = PrimitiveType[att._Type as keyof typeof PrimitiveType];
+        getOrCreateAttribute(newEntity, att.Name, type || PrimitiveType.STRING);
       }
-      const entObjFolder = getOrCreateFolder(objectsFolder, ent.Name);
-      getOrCreateDefaultCreateMicroflow(newEnt, entObjFolder);
-      createDefaultDeleteMicroflow(newEnt, entObjFolder);
-      createDefaultCommitMicroflow(newEnt, entObjFolder);
-      const entPagFolder = getOrCreateFolder(pagesFolder, ent.Name);
+      getOrCreateDefaultCreateMicroflow(
+        newEntity,
+        entityObjectFolder
+      ) as microflows.Microflow;
+      createDefaultDeleteMicroflow(newEntity, entityObjectFolder);
+      createDefaultCommitMicroflow(newEntity, entityObjectFolder);
+      const entityPageFolder = getOrCreateFolder(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
     }
-
-    await model.flushChanges();
-
-    await workingCopy.commitToRepository(input.BranchLine);
   }
+  await model.flushChanges();
+  await workingCopy.commitToRepository(input.BranchLine);
 }
 
 main().catch(console.error);

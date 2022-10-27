@@ -1,9 +1,9 @@
 {
-    "AppID": "9283b51f-9a05-4010-b89a-da37b257feb4-----",
-    "BranchLine": "branch_initialSetup",
+    "AppID": "99abffb7-dd91-4d75-848f-d992d9bedced",
+    "BranchLine": "branches/Remco",
     "Modules": [
         {
-            "Name": "SDK Extension",
+            "Name": "SDKExtension",
             "Entitys": [
                 {
                     "Name": "Brand",
