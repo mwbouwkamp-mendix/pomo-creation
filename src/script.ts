@@ -1,4 +1,3 @@
-import { microflows } from "mendixmodelsdk";
 import { MendixPlatformClient } from "mendixplatformsdk";
 import input from "./input.json";
 import { PrimitiveType } from "./types/AttributeType";
@@ -11,7 +10,6 @@ import {
   getOrCreateEntity,
   getOrCreateFolder,
 } from "./utils/utils";
-//import {Input} from './types/InputType'
 
 async function main() {
   const client = new MendixPlatformClient();
@@ -21,9 +19,10 @@ async function main() {
   const model = await workingCopy.openModel();
 
   for (const module of input.Modules) {
-    let x = 0;
-    let y = 0;
+    let x = 100;
+    let y = 100;
     const domainModel = await getOrCreateDomainModel(model, module.Name);
+    // High over folder creation
     const objectsFolder = getOrCreateFolder(
       domainModel.containerAsModule,
       "objects"
@@ -37,19 +36,28 @@ async function main() {
       "resources"
     );
     for (const entity of module.Entitys) {
-      const entityObjectFolder = getOrCreateFolder(objectsFolder, entity.Name);
-      const newEntity = getOrCreateEntity(domainModel, entity.Name, x, y);
       y += 100;
-      for (let att of entity.Attributes) {
-        const type = PrimitiveType[att._Type as keyof typeof PrimitiveType];
-        getOrCreateAttribute(newEntity, att.Name, type || PrimitiveType.STRING);
+      //Entity Creation
+      const newEntity = getOrCreateEntity(domainModel, entity.Name, x, y, true);
+      for (const attribute of entity.Attributes) {
+        const type = PrimitiveType[attribute._Type as keyof typeof PrimitiveType];
+        getOrCreateAttribute(newEntity, attribute.Name, type || PrimitiveType.STRING);
       }
-      getOrCreateDefaultCreateMicroflow(
+      // Object folder CRUD creation
+      const entityObjectFolder = getOrCreateFolder(objectsFolder, entity.Name);
+      const entityCreateMicroflow = getOrCreateDefaultCreateMicroflow(
         newEntity,
         entityObjectFolder
-      ) as microflows.Microflow;
-      createDefaultDeleteMicroflow(newEntity, entityObjectFolder);
-      createDefaultCommitMicroflow(newEntity, entityObjectFolder);
+      );
+      const entityDeleteMicroflow = createDefaultDeleteMicroflow(
+        newEntity,
+        entityObjectFolder
+      );
+      const entityCommitMicroflow = createDefaultCommitMicroflow(
+        newEntity,
+        entityObjectFolder
+      );
+      // pages folder CRUD Creation
       const entityPageFolder = getOrCreateFolder(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
     }
   }
