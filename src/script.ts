@@ -10,42 +10,64 @@ import {
   getOrCreateEntity,
   getOrCreateFolder,
 } from "./utils/utils";
-//import {Input} from './types/InputType'
 
+// Constants
+const DEFAULT_DELTAY_DM = 100;
+const DEFAULT_X_DM = 100;
+
+
+//Main
 async function main() {
   const client = new MendixPlatformClient();
-
-  const app = client.getApp(input.AppId);
-  const repo = app.getRepository();
-  const workingCopy = await app.createTemporaryWorkingCopy(input.BranchName);
+  const app = client.getApp(input.AppID);
+  const workingCopy = await app.createTemporaryWorkingCopy(input.BranchLine);
   const model = await workingCopy.openModel();
-  const domainModel = await getOrCreateDomainModel(model);
 
-  const objectsFolder = getOrCreateFolder(
-    domainModel.containerAsModule,
-    "objects"
-  );
-
-  let x = 0;
-  let y = 0;
-  for (var ent of input.Entities) {
-    const newEnt = getOrCreateEntity(domainModel, ent.Name, x, y);
-    x += 100;
-    y += 100;
-
-    getOrCreateAttribute(newEnt, "Name");
-    getOrCreateAttribute(newEnt, "Description");
-    getOrCreateAttribute(newEnt, "Active", PrimitiveType.BOOLEAN);
-
-    const entObjFolder = getOrCreateFolder(objectsFolder, ent.Name);
-    getOrCreateDefaultCreateMicroflow(newEnt,entObjFolder);
-    createDefaultDeleteMicroflow(newEnt,entObjFolder);
-    createDefaultCommitMicroflow(newEnt,entObjFolder);
+  for (const module of input.Modules) {
+    let x = DEFAULT_X_DM;
+    let y = 0;
+    const domainModel = await getOrCreateDomainModel(model, module.Name);
+    // High over folder creation
+    const objectsFolder = getOrCreateFolder(
+      domainModel.containerAsModule,
+      "objects"
+    );
+    const pagesFolder = getOrCreateFolder(
+      domainModel.containerAsModule,
+      "pages"
+    );
+    const resourcesFolder = getOrCreateFolder(
+      domainModel.containerAsModule,
+      "resources"
+    );
+    for (const entity of module.Entitys) {
+      //Entity Creation
+      const newEntity = getOrCreateEntity(domainModel, entity.Name, x, y, true);
+      for (const attribute of entity.Attributes) {
+        const type = PrimitiveType[attribute._Type as keyof typeof PrimitiveType];
+        getOrCreateAttribute(newEntity, attribute.Name, type || PrimitiveType.STRING);
+      }
+      // Object folder CRUD creation
+      const entityObjectFolder = getOrCreateFolder(objectsFolder, entity.Name);
+      const entityCreateMicroflow = getOrCreateDefaultCreateMicroflow(
+        newEntity,
+        entityObjectFolder
+      );
+      const entityDeleteMicroflow = createDefaultDeleteMicroflow(
+        newEntity,
+        entityObjectFolder
+      );
+      const entityCommitMicroflow = createDefaultCommitMicroflow(
+        newEntity,
+        entityObjectFolder
+      );
+      // pages folder CRUD Creation
+      const entityPageFolder = getOrCreateFolder(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
+      y += DEFAULT_DELTAY_DM;
+    }
   }
-
   await model.flushChanges();
-
-  await workingCopy.commitToRepository(input.BranchName);
+  await workingCopy.commitToRepository(input.BranchLine);
 }
 
 main().catch(console.error);

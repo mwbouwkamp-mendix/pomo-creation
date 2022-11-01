@@ -11,4 +11,5 @@ var PrimitiveType;
     PrimitiveType["INTEGER"] = "INTEGER";
     PrimitiveType["LONG"] = "LONG";
     PrimitiveType["STRING"] = "STRING";
+    PrimitiveType["ENUMERATION"] = "ENUMERATION";
 })(PrimitiveType = exports.PrimitiveType || (exports.PrimitiveType = {}));
