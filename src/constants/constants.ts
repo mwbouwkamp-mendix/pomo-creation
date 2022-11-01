@@ -1,0 +1,1 @@
+export const DEFAULT_DELTAX_MF = 140;

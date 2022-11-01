@@ -11,16 +11,21 @@ import {
   getOrCreateFolder,
 } from "./utils/utils";
 
+// Constants
+const DEFAULT_DELTAY_DM = 100;
+const DEFAULT_X_DM = 100;
+
+
+//Main
 async function main() {
   const client = new MendixPlatformClient();
   const app = client.getApp(input.AppID);
-  const repo = app.getRepository();
   const workingCopy = await app.createTemporaryWorkingCopy(input.BranchLine);
   const model = await workingCopy.openModel();
 
   for (const module of input.Modules) {
-    let x = 100;
-    let y = 100;
+    let x = DEFAULT_X_DM;
+    let y = 0;
     const domainModel = await getOrCreateDomainModel(model, module.Name);
     // High over folder creation
     const objectsFolder = getOrCreateFolder(
@@ -36,7 +41,6 @@ async function main() {
       "resources"
     );
     for (const entity of module.Entitys) {
-      y += 100;
       //Entity Creation
       const newEntity = getOrCreateEntity(domainModel, entity.Name, x, y, true);
       for (const attribute of entity.Attributes) {
@@ -59,6 +63,7 @@ async function main() {
       );
       // pages folder CRUD Creation
       const entityPageFolder = getOrCreateFolder(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
+      y += DEFAULT_DELTAY_DM;
     }
   }
   await model.flushChanges();

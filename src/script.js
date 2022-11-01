@@ -10,19 +10,17 @@ const utils_1 = require("./utils/utils");
 async function main() {
     const client = new mendixplatformsdk_1.MendixPlatformClient();
     const app = client.getApp(input_json_1.default.AppID);
-    const repo = app.getRepository();
     const workingCopy = await app.createTemporaryWorkingCopy(input_json_1.default.BranchLine);
     const model = await workingCopy.openModel();
     for (const module of input_json_1.default.Modules) {
-        let x = 0;
-        let y = 0;
+        let x = 100;
+        let y = 100;
         const domainModel = await (0, utils_1.getOrCreateDomainModel)(model, module.Name);
         // High over folder creation
         const objectsFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "objects");
         const pagesFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "pages");
         const resourcesFolder = (0, utils_1.getOrCreateFolder)(domainModel.containerAsModule, "resources");
         for (const entity of module.Entitys) {
-            y += 100;
             //Entity Creation
             const newEntity = (0, utils_1.getOrCreateEntity)(domainModel, entity.Name, x, y, true);
             for (const attribute of entity.Attributes) {
@@ -36,6 +34,7 @@ async function main() {
             const entityCommitMicroflow = (0, utils_1.createDefaultCommitMicroflow)(newEntity, entityObjectFolder);
             // pages folder CRUD Creation
             const entityPageFolder = (0, utils_1.getOrCreateFolder)(pagesFolder, entity.Name); //To Do add ACT_Entity_Create, Commit, Delete
+            y += 100;
         }
     }
     await model.flushChanges();

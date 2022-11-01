@@ -65,10 +65,9 @@ const createFolder = (location, name) => {
  * @returns domainmodels.Entity object.
  */
 const getOrCreateEntity = (domainModel, entityName, x, y, isPersistable, documentation) => {
-    const existingEntity = domainModel.entities.filter((dm) => dm.name === entityName)[0];
-    if (existingEntity)
-        return existingEntity;
-    return createEntity(domainModel, entityName, x, y, isPersistable, documentation);
+    const existingEntity = domainModel.entities.find((ent) => ent.name === entityName);
+    return (existingEntity ||
+        createEntity(domainModel, entityName, x, y, isPersistable, documentation));
 };
 exports.getOrCreateEntity = getOrCreateEntity;
 /**
@@ -86,7 +85,7 @@ const createEntity = (domainModel, entityName, x, y, isPersistable, documentatio
     newEntity.documentation =
         documentation ||
             `This is default documentation for entity ${newEntity.name}.`;
-    newEntity.location = { x: x, y: y };
+    newEntity.location = { x, y };
     const Generalization = mendixmodelsdk_1.domainmodels.NoGeneralization.createIn(newEntity);
     Generalization.persistable = isPersistable || true;
     Generalization.hasChangedBy = false;
@@ -107,9 +106,8 @@ const createEntity = (domainModel, entityName, x, y, isPersistable, documentatio
  */
 const getOrCreateAttribute = (Entity, attributeName, attributeType, length, defaultValue, documentation) => {
     const ExistingAttribute = Entity.attributes.find((at) => at.name === attributeName);
-    if (ExistingAttribute)
-        return ExistingAttribute;
-    return createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation);
+    return (ExistingAttribute ||
+        createAttribute(Entity, attributeName, attributeType, length, defaultValue, documentation));
 };
 exports.getOrCreateAttribute = getOrCreateAttribute;
 /**
@@ -152,10 +150,7 @@ const createAttribute = (Entity, attributeName, attributeType, length, defaultVa
             break;
         case AttributeType_1.PrimitiveType.STRING:
             const Attr = mendixmodelsdk_1.domainmodels.StringAttributeType.createInAttributeUnderType(NewAttribute);
-            if (length)
-                Attr.length = length;
-            else
-                Attr.length = 200;
+            Attr.length = length || 200;
             break;
         default:
             throw Error(`Cannot create add [${NewAttribute.name}] with type [${NewAttribute.type}] for entity [${Entity.name}] to mapping, since this type is not yet supported.`);
@@ -170,7 +165,6 @@ const createAttribute = (Entity, attributeName, attributeType, length, defaultVa
  */
 const createDefaultDeleteMicroflow = (entity, folder) => {
     const name = `${entity.name}_Delete`;
-    folder.documents;
     const microflow = (0, microflowUtils_1.createMicroflow)(folder, name);
     const inputParam = (0, microflowUtils_1.createInputParameter)(microflow, entity, `${entity.name}_ToDelete`, "input parameter to delete");
     const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
@@ -218,9 +212,10 @@ exports.getOrCreateDefaultCreateMicroflow = getOrCreateDefaultCreateMicroflow;
 const createDefaultCreateMicroflow = (entity, microflowName, folder) => {
     const microflow = (0, microflowUtils_1.createMicroflow)(folder, microflowName);
     const startEvent = (0, microflowUtils_1.createStartEvent)(microflow);
-    const createActivity = (0, microflowUtils_1.createAndAttachCreateAction)(microflow, entity, startEvent);
+    const nameOfCreatedObject = `New${entity.name}`;
+    const createActivity = (0, microflowUtils_1.createAndAttachCreateAction)(microflow, entity, nameOfCreatedObject, startEvent);
     const endEvent = (0, microflowUtils_1.createAndAttachEndEvent)(microflow, createActivity);
-    endEvent.returnValue = "$New" + entity.name;
+    endEvent.returnValue = nameOfCreatedObject;
     mendixmodelsdk_1.datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(microflow).entity = entity;
     return microflow;
 };

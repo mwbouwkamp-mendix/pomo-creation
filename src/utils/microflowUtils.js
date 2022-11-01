@@ -90,8 +90,8 @@ const createMicroflowAction = (microflow, x, y, widthFactor) => {
  * @param attachAfterObject Previous microflow object
  * @returns The create activity
  */
-const createAndAttachCreateAction = (microflow, entity, attachAfterObject) => {
-    const actionActivity = createCreateAction(microflow, entity, attachAfterObject.relativeMiddlePoint.x + 140);
+const createAndAttachCreateAction = (microflow, entity, nameOfCreatedObject, attachAfterObject) => {
+    const actionActivity = createCreateAction(microflow, entity, nameOfCreatedObject, attachAfterObject.relativeMiddlePoint.x + 140);
     connectMicroflowActions(microflow, attachAfterObject, actionActivity, ConnectionType.LEFT_RIGHT);
     return actionActivity;
 };
@@ -103,11 +103,11 @@ exports.createAndAttachCreateAction = createAndAttachCreateAction;
  * @param x x position of the create action
  * @returns new create action
  */
-const createCreateAction = (microflow, entity, x) => {
+const createCreateAction = (microflow, entity, nameOfCreatedObject, x) => {
     const actionActivity = createMicroflowAction(microflow, x, 100, 1);
     const createObject = mendixmodelsdk_1.microflows.CreateObjectAction.createIn(actionActivity);
     createObject.entity = entity;
-    createObject.outputVariableName = `New${entity.name}`;
+    createObject.outputVariableName = `$${nameOfCreatedObject}`;
     createObject.structureTypeName = entity.name;
     return actionActivity;
 };
@@ -188,7 +188,6 @@ const connectMicroflowActions = (microflow, start, end, connectionType) => {
         default:
             throw Error(`Unsupported ConnectionType: ${connectionType}`);
     }
-    ;
 };
 var ConnectionType;
 (function (ConnectionType) {

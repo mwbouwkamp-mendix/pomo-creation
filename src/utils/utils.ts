@@ -133,7 +133,7 @@ const createEntity = (
   newEntity.documentation =
     documentation ||
     `This is default documentation for entity ${newEntity.name}.`;
-  newEntity.location = { x: x, y: y };
+  newEntity.location = { x, y };
   const Generalization = domainmodels.NoGeneralization.createIn(newEntity);
   Generalization.persistable = isPersistable || true;
   Generalization.hasChangedBy = false;
@@ -164,13 +164,16 @@ export const getOrCreateAttribute = (
   const ExistingAttribute = Entity.attributes.find(
     (at) => at.name === attributeName
   );
-  return ExistingAttribute || createAttribute(
-    Entity,
-    attributeName,
-    attributeType,
-    length,
-    defaultValue,
-    documentation
+  return (
+    ExistingAttribute ||
+    createAttribute(
+      Entity,
+      attributeName,
+      attributeType,
+      length,
+      defaultValue,
+      documentation
+    )
   );
 };
 
@@ -254,7 +257,6 @@ export const createDefaultDeleteMicroflow = (
   folder: projects.IFolder
 ): microflows.Microflow => {
   const name = `${entity.name}_Delete`;
-  folder.documents;
   const microflow = createMicroflow(folder, name);
   const inputParam = createInputParameter(
     microflow,
@@ -332,13 +334,15 @@ const createDefaultCreateMicroflow = (
 ): microflows.Microflow => {
   const microflow = createMicroflow(folder, microflowName);
   const startEvent = createStartEvent(microflow);
+  const nameOfCreatedObject = `New${entity.name}`;
   const createActivity = createAndAttachCreateAction(
     microflow,
     entity,
+    nameOfCreatedObject,
     startEvent
   );
   const endEvent = createAndAttachEndEvent(microflow, createActivity);
-  endEvent.returnValue = "$New" + entity.name;
+  endEvent.returnValue = nameOfCreatedObject;
   datatypes.ObjectType.createInMicroflowBaseUnderMicroflowReturnType(
     microflow
   ).entity = entity;

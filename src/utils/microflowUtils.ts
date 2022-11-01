@@ -1,4 +1,5 @@
 import { datatypes, domainmodels, microflows, projects } from "mendixmodelsdk";
+import {DEFAULT_DELTAX_MF } from "../constants/constants"
 
 /**
  * Creates a microflow
@@ -69,7 +70,7 @@ export const createAndAttachEndEvent = (
 ): microflows.EndEvent => {
   const endEvent = createEndEvent(
     microflow,
-    attachAfterObject.relativeMiddlePoint.x + 140
+    attachAfterObject.relativeMiddlePoint.x + DEFAULT_DELTAX_MF
   );
   connectMicroflowActions(
     microflow,
@@ -127,12 +128,14 @@ const createMicroflowAction = (
 export const createAndAttachCreateAction = (
   microflow: microflows.Microflow,
   entity: domainmodels.Entity,
+  nameOfCreatedObject: string,
   attachAfterObject: microflows.MicroflowObject
 ): microflows.ActionActivity => {
   const actionActivity = createCreateAction(
     microflow,
     entity,
-    attachAfterObject.relativeMiddlePoint.x + 140
+    nameOfCreatedObject,
+    attachAfterObject.relativeMiddlePoint.x + DEFAULT_DELTAX_MF
   );
   connectMicroflowActions(
     microflow,
@@ -153,12 +156,13 @@ export const createAndAttachCreateAction = (
 const createCreateAction = (
   microflow: microflows.Microflow,
   entity: domainmodels.Entity,
+  nameOfCreatedObject: string,
   x: number
 ): microflows.ActionActivity => {
   const actionActivity = createMicroflowAction(microflow, x, 100, 1);
   const createObject = microflows.CreateObjectAction.createIn(actionActivity);
   createObject.entity = entity;
-  createObject.outputVariableName = `New${entity.name}`;
+  createObject.outputVariableName = `$${nameOfCreatedObject}`;
   createObject.structureTypeName = entity.name;
   return actionActivity;
 };
@@ -178,7 +182,7 @@ export const createAndAttachDeleteAction = (
   const actionActivity = createDeleteAction(
     microflow,
     variableToDelete,
-    attachAfterObject.relativeMiddlePoint.x + 140
+    attachAfterObject.relativeMiddlePoint.x + DEFAULT_DELTAX_MF
   );
   connectMicroflowActions(
     microflow,
@@ -223,7 +227,7 @@ export const createAndAttachCommitAction = (
   const actionActivity = createCommitAction(
     microflow,
     variableToCommit,
-    attachAfterObject.relativeMiddlePoint.x + 140
+    attachAfterObject.relativeMiddlePoint.x + DEFAULT_DELTAX_MF
   );
   connectMicroflowActions(
     microflow,
